@@ -13,16 +13,16 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
     private static final String DEFAULT_SYMBOLIC_NAME = "POSTGRESQL";
 
     // data directory for the Official Docker PostgreSQL image
-    private static final String OFFICIAL_IMAGE_DATA_DIR = "/var/lib/postgresql/data";
-    private static final String OFFICIAL_IMAGE_PGDATA_DIR = "/var/lib/postgresql/data/pgdata";
+    private static final String DEFAULT_DATA_DIR = "/var/lib/postgresql/data";
+    private static final String DEFAULT_PGDATA_DIR = "/var/lib/postgresql/data/pgdata";
 
     // env variables names for the Official Docker PostgreSQL image
-    private static final String OFFICIAL_IMAGE_POSTGRESQL_USER_ENV_VAR = "POSTGRES_USER";
-    private static final String OFFICIAL_IMAGE_POSTGRESQL_DATABASE_ENV_VAR = "POSTGRES_DB";
-    private static final String OFFICIAL_IMAGE_POSTGRES_PASSWORD_ENV_VAR = "POSTGRES_PASSWORD";
+    private static final String DEFAULT_POSTGRESQL_USER_ENV_VAR = "POSTGRES_USER";
+    private static final String DEFAULT_POSTGRESQL_DATABASE_ENV_VAR = "POSTGRES_DB";
+    private static final String DEFAULT_POSTGRES_PASSWORD_ENV_VAR = "POSTGRES_PASSWORD";
 
     // default env variables for for the Official Docker PostgreSQL image
-    private static final Map<String, String> OFFICIAL_IMAGE_DEFAULT_VARS = new HashMap<String, String>() {
+    private static final Map<String, String> DEFAULT_VARS = new HashMap<String, String>() {
         {
             // Temporary workaround for https://github.com/sclorg/postgresql-container/issues/297
             // Increase the "set_passwords.sh" timeout from the default 60s to 300s to give the
@@ -32,7 +32,7 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
     };
 
     // default command arguments for the Official Docker PostgreSQL image
-    private static final List<String> OFFICIAL_IMAGE_DEFAULT_ARGS = new ArrayList<String>() {
+    private static final List<String> DEFAULT_ARGS = new ArrayList<String>() {
         {
             add("-c");
             add("shared_buffers=16MB");
@@ -47,17 +47,16 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
     private String postgresqlDatabaseEnvVar;
     private Map<String, String> vars;
     private List<String> args;
-    private String dataDir;
     private String serviceAccount;
     private String pgData;
 
-    private OfficialPostgreSQL(PostgreSQLBuilder builder) {
+    public OfficialPostgreSQL(Builder builder) {
         super(
                 (builder.symbolicName == null || builder.symbolicName.isEmpty())
                         ? DEFAULT_SYMBOLIC_NAME
                         : builder.symbolicName,
                 (builder.dataDir == null || builder.dataDir.isEmpty())
-                        ? OFFICIAL_IMAGE_DATA_DIR
+                        ? DEFAULT_DATA_DIR
                         : builder.dataDir,
                 builder.pvc,
                 builder.username,
@@ -69,22 +68,19 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
                 builder.withStartupProbe,
                 builder.deploymentConfigName,
                 builder.envVarPrefix);
-        postgresqlUserEnvVar = OFFICIAL_IMAGE_POSTGRESQL_USER_ENV_VAR;
-        postgresqlDatabaseEnvVar = OFFICIAL_IMAGE_POSTGRESQL_DATABASE_ENV_VAR;
+        postgresqlUserEnvVar = DEFAULT_POSTGRESQL_USER_ENV_VAR;
+        postgresqlDatabaseEnvVar = DEFAULT_POSTGRESQL_DATABASE_ENV_VAR;
         this.vars = builder.vars;
         if (this.vars == null) {
-            this.vars = OFFICIAL_IMAGE_DEFAULT_VARS;
+            this.vars = DEFAULT_VARS;
         }
         this.args = builder.args;
         if (this.args == null) {
-            this.args = OFFICIAL_IMAGE_DEFAULT_ARGS;
+            this.args = DEFAULT_ARGS;
         }
-        this.dataDir = (builder.dataDir == null || builder.dataDir.isEmpty())
-                ? OFFICIAL_IMAGE_DATA_DIR
-                : builder.dataDir;
         this.serviceAccount = builder.serviceAccount;
         this.pgData = (builder.pgData == null || builder.pgData.isEmpty())
-                ? OFFICIAL_IMAGE_PGDATA_DIR
+                ? DEFAULT_PGDATA_DIR
                 : builder.pgData;
     }
 
@@ -145,9 +141,9 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
     public Map<String, String> getImageVariables() {
         Map<String, String> vars;
         vars = new HashMap<>();
-        vars.put(OFFICIAL_IMAGE_POSTGRESQL_USER_ENV_VAR, getUsername());
-        vars.put(OFFICIAL_IMAGE_POSTGRES_PASSWORD_ENV_VAR, getPassword());
-        vars.put(OFFICIAL_IMAGE_POSTGRESQL_DATABASE_ENV_VAR, getDbName());
+        vars.put(DEFAULT_POSTGRESQL_USER_ENV_VAR, getUsername());
+        vars.put(DEFAULT_POSTGRES_PASSWORD_ENV_VAR, getPassword());
+        vars.put(DEFAULT_POSTGRESQL_DATABASE_ENV_VAR, getDbName());
         vars.put("PGDATA", this.pgData);
         vars.putAll(this.vars);
         return vars;
@@ -163,7 +159,7 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
         return serviceAccount;
     }
 
-    public static class PostgreSQLBuilder {
+    public static class Builder {
         private String symbolicName;
         private String dataDir;
         private PersistentVolumeClaim pvc;
@@ -181,82 +177,82 @@ public class OfficialPostgreSQL extends AbstractSQLDatabase {
         private String serviceAccount;
         private String pgData;
 
-        public PostgreSQLBuilder withArgs(List<String> args) {
+        public Builder withArgs(List<String> args) {
             this.args = args;
             return this;
         }
 
-        public PostgreSQLBuilder withConfigureEnvironment(boolean configureEnvironment) {
+        public Builder withConfigureEnvironment(boolean configureEnvironment) {
             this.configureEnvironment = configureEnvironment;
             return this;
         }
 
-        public PostgreSQLBuilder withDataDir(String dataDir) {
+        public Builder withDataDir(String dataDir) {
             this.dataDir = dataDir;
             return this;
         }
 
-        public PostgreSQLBuilder withDbName(String dbName) {
+        public Builder withDbName(String dbName) {
             this.dbName = dbName;
             return this;
         }
 
-        public PostgreSQLBuilder withDeploymentConfigName(Supplier<String> deploymentConfigName) {
+        public Builder withDeploymentConfigName(Supplier<String> deploymentConfigName) {
             this.deploymentConfigName = deploymentConfigName;
             return this;
         }
 
-        public PostgreSQLBuilder withEnvVarPrefix(Supplier<String> envVarPrefix) {
+        public Builder withEnvVarPrefix(Supplier<String> envVarPrefix) {
             this.envVarPrefix = envVarPrefix;
             return this;
         }
 
-        public PostgreSQLBuilder withPassword(String password) {
+        public Builder withPassword(String password) {
             this.password = password;
             return this;
         }
 
-        public PostgreSQLBuilder withPvc(PersistentVolumeClaim pvc) {
+        public Builder withPvc(PersistentVolumeClaim pvc) {
             this.pvc = pvc;
             return this;
         }
 
-        public PostgreSQLBuilder withSymbolicName(String symbolicName) {
+        public Builder withSymbolicName(String symbolicName) {
             this.symbolicName = symbolicName;
             return this;
         }
 
-        public PostgreSQLBuilder withUsername(String username) {
+        public Builder withUsername(String username) {
             this.username = username;
             return this;
         }
 
-        public PostgreSQLBuilder withVars(Map<String, String> vars) {
+        public Builder withVars(Map<String, String> vars) {
             this.vars = vars;
             return this;
         }
 
-        public PostgreSQLBuilder withWithLivenessProbe(boolean withLivenessProbe) {
+        public Builder withWithLivenessProbe(boolean withLivenessProbe) {
             this.withLivenessProbe = withLivenessProbe;
             return this;
         }
 
-        public PostgreSQLBuilder withWithReadinessProbe(boolean withReadinessProbe) {
+        public Builder withWithReadinessProbe(boolean withReadinessProbe) {
             this.withReadinessProbe = withReadinessProbe;
             return this;
         }
 
-        public PostgreSQLBuilder withWithStartupProbe(boolean withStartupProbe) {
+        public Builder withWithStartupProbe(boolean withStartupProbe) {
             this.withStartupProbe = withStartupProbe;
             return this;
         }
 
-        public PostgreSQLBuilder withServiceAccount(String serviceAccount) {
+        public Builder withServiceAccount(String serviceAccount) {
             this.serviceAccount = serviceAccount;
             return this;
         }
 
-        public PostgreSQLBuilder withPgData(String pgData) {
+        public Builder withPgData(String pgData) {
             this.pgData = pgData;
             return this;
         }

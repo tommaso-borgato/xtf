@@ -34,8 +34,9 @@ public class RedHatPostgreSQL extends AbstractSQLDatabase {
     private String postgresqlDatabaseEnvVar;
     private Map<String, String> vars;
     private List<String> args;
+    private String serviceAccount;
 
-    public RedHatPostgreSQL(RedHatPostgreSQLBuilder builder) {
+    public RedHatPostgreSQL(Builder builder) {
         super(
                 (builder.symbolicName == null || builder.symbolicName.isEmpty())
                         ? DEFAULT_SYMBOLIC_NAME
@@ -59,6 +60,7 @@ public class RedHatPostgreSQL extends AbstractSQLDatabase {
         if (this.vars == null) {
             this.vars = DEFAULT_VARS;
         }
+        this.serviceAccount = builder.serviceAccount;
         this.args = builder.args;
     }
 
@@ -76,11 +78,6 @@ public class RedHatPostgreSQL extends AbstractSQLDatabase {
 
     public void setArgs(List<String> args) {
         this.args = args;
-    }
-
-    @Override
-    public List<String> getImageArgs() {
-        return args;
     }
 
     @Override
@@ -127,7 +124,17 @@ public class RedHatPostgreSQL extends AbstractSQLDatabase {
         return vars;
     }
 
-    public static class RedHatPostgreSQLBuilder {
+    @Override
+    public List<String> getImageArgs() {
+        return args;
+    }
+
+    @Override
+    public String getServiceAccount() {
+        return serviceAccount;
+    }
+
+    public static class Builder {
         private String symbolicName;
         private String dataDir;
         private PersistentVolumeClaim pvc;
@@ -142,74 +149,86 @@ public class RedHatPostgreSQL extends AbstractSQLDatabase {
         private List<String> args;
         private Supplier<String> deploymentConfigName;
         private Supplier<String> envVarPrefix;
+        private String serviceAccount;
+        private String pgData;
 
-        public RedHatPostgreSQLBuilder withArgs(List<String> args) {
+        public Builder withArgs(List<String> args) {
             this.args = args;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withConfigureEnvironment(boolean configureEnvironment) {
+        public Builder withConfigureEnvironment(boolean configureEnvironment) {
             this.configureEnvironment = configureEnvironment;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withDataDir(String dataDir) {
+        public Builder withDataDir(String dataDir) {
             this.dataDir = dataDir;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withDbName(String dbName) {
+        public Builder withDbName(String dbName) {
             this.dbName = dbName;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withDeploymentConfigName(Supplier<String> deploymentConfigName) {
+        public Builder withDeploymentConfigName(Supplier<String> deploymentConfigName) {
             this.deploymentConfigName = deploymentConfigName;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withEnvVarPrefix(Supplier<String> envVarPrefix) {
+        public Builder withEnvVarPrefix(Supplier<String> envVarPrefix) {
             this.envVarPrefix = envVarPrefix;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withPassword(String password) {
+        public Builder withPassword(String password) {
             this.password = password;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withPvc(PersistentVolumeClaim pvc) {
+        public Builder withPvc(PersistentVolumeClaim pvc) {
             this.pvc = pvc;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withSymbolicName(String symbolicName) {
+        public Builder withSymbolicName(String symbolicName) {
             this.symbolicName = symbolicName;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withUsername(String username) {
+        public Builder withUsername(String username) {
             this.username = username;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withVars(Map<String, String> vars) {
+        public Builder withVars(Map<String, String> vars) {
             this.vars = vars;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withWithLivenessProbe(boolean withLivenessProbe) {
+        public Builder withWithLivenessProbe(boolean withLivenessProbe) {
             this.withLivenessProbe = withLivenessProbe;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withWithReadinessProbe(boolean withReadinessProbe) {
+        public Builder withWithReadinessProbe(boolean withReadinessProbe) {
             this.withReadinessProbe = withReadinessProbe;
             return this;
         }
 
-        public RedHatPostgreSQLBuilder withWithStartupProbe(boolean withStartupProbe) {
+        public Builder withWithStartupProbe(boolean withStartupProbe) {
             this.withStartupProbe = withStartupProbe;
+            return this;
+        }
+
+        public Builder withServiceAccount(String serviceAccount) {
+            this.serviceAccount = serviceAccount;
+            return this;
+        }
+
+        public Builder withPgData(String pgData) {
+            this.pgData = pgData;
             return this;
         }
 
