@@ -35,6 +35,19 @@ public abstract class AbstractOracle extends AbstractSQLDatabase {
         super(USERNAME, PASSWORD, dbName, SYMBOLIC_NAME, DATA_DIR);
     }
 
+    public AbstractOracle(String username, String password, String dbName, String dataDir) {
+        super(username, password, dbName, SYMBOLIC_NAME, dataDir, true, true);
+    }
+
+    public AbstractOracle(String username, String password, String dbName, String dataDir, PersistentVolumeClaim pvc) {
+        super(username, password, dbName, SYMBOLIC_NAME, dataDir, pvc, true, true);
+    }
+
+    public AbstractOracle(String username, String password, String dbName, String dataDir, PersistentVolumeClaim pvc,
+            boolean withLivenessProbe, boolean withReadinessProbe) {
+        super(username, password, dbName, SYMBOLIC_NAME, dataDir, pvc, withLivenessProbe, withReadinessProbe);
+    }
+
     public AbstractOracle(String dbName, boolean withLivenessProbe, boolean withReadinessProbe) {
         super(USERNAME, PASSWORD, dbName, SYMBOLIC_NAME, DATA_DIR, withLivenessProbe, withReadinessProbe);
     }
